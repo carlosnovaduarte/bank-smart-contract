@@ -45,16 +45,19 @@ contract("Bank", function([owner, ...accounts]) {
 
     describe("from different accounts", function() {
       it("update target address balance", async function() {
-        const amounts = [400, 300];
+        const amounts = [400, 300, 40, 30, 100, 20];
 
-        await bank.deposit({ from: accounts[0], value: amounts[0] });
-        await bank.deposit({ from: accounts[1], value: amounts[1] });
+        amounts.forEach(async (amount, idx) => {
+          await bank.deposit({ from: accounts[idx], value: amount });
+        });
 
-        const acc0balance = await bank.deposits(accounts[0]);
-        const acc1balance = await bank.deposits(accounts[1]);
+        const given = await Promise.all(amounts.map((_, idx) => {
+          return bank.deposits(accounts[idx])
+        }));
 
-        assert.equal(amounts[0], acc0balance);
-        assert.equal(amounts[1], acc1balance);
+        amounts.forEach((amount, idx) => {
+          assert(given[idx].equals(amount));
+        });
       });
 
       it("update total balance", async function() { 
