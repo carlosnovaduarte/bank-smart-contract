@@ -3,93 +3,133 @@ const Bank = artifacts.require("Bank");
 contract("Bank", function([owner, ...accounts]) {
   let bank;
 
-  describe("Contract creation", function() {
-    beforeEach(async function() {
-      bank = await Bank.new();
-    });
+  beforeEach(async function() {
+    bank = await Bank.new();
+  });
 
+  describe("Contract creation", function() {
     it("creates a contract with zero balance", async function() {
       const balance = await bank.balance();
-      assert(balance == 0);
+      assert.equal(0, balance);
     });
   });
 
-  describe("Verifies balance integrity", function() {
+  describe("Deposits", function() {
+    describe("from the same account", function() {
+      it("update target address balance", async function() {
+        const amounts = [400, 300];
+
+        await bank.deposit({ from: accounts[0], value: amounts[0] });
+        await bank.deposit({ from: accounts[0], value: amounts[1] });
+
+        const expected = amounts.reduce((a, c) => a+c, 0)
+        const given = await bank.deposits(accounts[0]);
+
+        assert.equal(expected, given);
+      });
+
+      it("update total balance", async function() {
+        const amounts = [500, 1000];
+
+        await bank.deposit({ from: accounts[0], value: amounts[0] });
+        await bank.deposit({ from: accounts[0], value: amounts[1] });
+
+        const addressBalance = await bank.deposits(accounts[0]);
+
+        const expected = amounts.reduce((a, c) => a+c, 0)
+        const given = await bank.balance();
+
+        assert.equal(expected, given);
+      });
+    })
+
+    describe("from different accounts", function() {
+      it("update target address balance", async function() {
+        const amounts = [400, 300];
+
+        await bank.deposit({ from: accounts[0], value: amounts[0] });
+        await bank.deposit({ from: accounts[1], value: amounts[1] });
+
+        const acc0balance = await bank.deposits(accounts[0]);
+        const acc1balance = await bank.deposits(accounts[1]);
+
+        assert.equal(amounts[0], acc0balance);
+        assert.equal(amounts[1], acc1balance);
+      });
+
+      it("update total balance", async function() { 
+        const amounts = [200, 300];
+
+        await bank.deposit({ from: accounts[0], value: amounts[0] });
+        await bank.deposit({ from: accounts[1], value: amounts[1] });
+
+        const expected = amounts.reduce((a, c) => a+c, 0)
+        const given = await bank.balance();
+
+        assert.equal(expected, given);
+      });
+    }); 
+  });
+
+  describe("Withdrawals", function() {
     beforeEach(async function() {
       bank = await Bank.new();
     });
 
-    it("balance from address is stored correctly", async function() {
-      await bank.deposit({ from: accounts[0], value:  300 });
-      const balance = await bank.deposits(accounts[0]);
-      const x = web3.eth.getBalance(accounts[0]);
-      console.log(">>>", x.toString());
-      assert(balance == 300);
-    });
-    
-    /**
-    it.only("takes balance from the depositant's address", async function() {
-      const value = 1e18;
-      const balanceBefore = web3.eth.getBalance(accounts[0]);
-      const tx = await bank.deposit({ from: accounts[0], value:  value });
-      const balanceAfter = web3.eth.getBalance(accounts[0]);
+    const depositValue = 200;
+    const valueWithdrawn = 50;
 
-      console.log("bf", balanceBefore.toString());
-      console.log("af", balanceAfter.toString());
-      console.log("vv", value);
-      console.log("tx", tx.receipt.gasUsed);
-      console.log(balanceAfter.plus(300).plus(tx.receipt.gasUsed).equals(balanceBefore));
-    });
-    */
-
-    it("two or more deposits update total balance correctly", async function() { 
-      await bank.deposit({ from: accounts[0], value: 200 });
-      await bank.deposit({ from: accounts[1], value: 300 });
-      const depositAccount0 = await bank.deposits(accounts[0]);
-      const depositAccount1 = await bank.deposits(accounts[1]);
-      let balance = depositAccount0.add(depositAccount1);
-      assert.equal(500, balance);
-    });
-
-    it("two deposits from same address update address deposit correctly", async function() {
-      await bank.deposit({ from: accounts[0], value: 500 });
-      await bank.deposit({ from: accounts[0], value: 500 });
-      const addressBalance = await bank.deposits(accounts[0]);
-      assert(addressBalance == 1000);
-    });
-
-    it("money is withdrawn from bank correctly", async function() {
-      await bank.deposit({ from: accounts[0], value: 200 });
-
+    it("update total balance ", async function() {
+      await bank.deposit({ from: accounts[0], value: depositValue });
       const balanceBefore = await bank.balance();
-      await bank.withdraw(50);
+      await bank.withdraw(valueWithdrawn);
       const balanceAfter = await bank.balance();
-
-
-      console.log(balanceBefore-balanceAfter);
-      assert.equal(50, balanceBefore - balanceAfter); 
+      assert.equal(valueWithdrawn, balanceBefore - balanceAfter); 
     });
 
-    it("money is withdwawn to account correctly", async function() {
-      await bank.deposit({ from: accounts[0], value: 200 });
+    it("update account balance", async function() {
+      await bank.deposit({ from: accounts[0], value: depositValue });
       const balanceBefore = await bank.deposits(accounts[0]);
-      await bank.withdraw(50, { from: accounts[0], value: 50 });
+      await bank.withdraw(valueWithdrawn, { from: accounts[0], value: depositValue });
       const balanceAfter = await bank.deposits(accounts[0]);
-      assert.equal(50, balanceBefore - balanceAfter);
-    });
-
-    it("money is transfered from one account to another", function() {
-      await bank.deposit({ from: accounts[0], value: 500 });
-      await bank.deposit({ from: accounts[1], value: 200 });
-
-      const balanceAccount0 = await bank.deposits(account[0]);
-      const balanceAccount1 = await bank.deposits(account[1]);
-
-      await bank.transfer(accounts[1], 100, { from: accounts[0], amount = 100 });
-
-      assert.equal(400, balanceAccount0 - 100);
-      assert.equal(300, balanceAccount + 100);
-
+      assert.equal(valueWithdrawn, balanceBefore - balanceAfter);
     });
   });
+
+  /*describe("Transfer", function() {
+    beforeEach(async function() {
+      bank = await Bank.new();
+    });
+
+    const depositValueAccount0 = 500, depositValueAccount1 = 200;
+    const transferValue = 100;
+
+    it("money is transfered from one account to another", async function() {
+      await bank.deposit({ from: accounts[0], value: depositValueAccount0});
+      await bank.deposit({ from: accounts[1], value: depositValueAccount1 });
+
+      const balanceAccount0 = await bank.deposits(accounts[0]);
+      const balanceAccount1 = await bank.deposits(accounts[1]);
+
+      await bank.transfer(accounts[1], transferValue, { from: accounts[0] });
+
+      assert.equal(400, balanceAccount0.minus(transferValue));
+      assert.equal(300, balanceAccount1.plus(transferValue));
+    });
+
+    it("bank balance stays the same when transfer occurs", async function() {
+      await bank.deposit({ from: accounts[0], value: depositValueAccount0 });
+      await bank.deposit({ from: accounts[1], value: depositValueAccount1 });
+
+      const balanceBefore = await bank.balance();
+
+      await bank.transfer(accounts[1], transferValue, { from: accounts[0] });
+
+      const balanceAfter = await bank.balance();
+
+      assert.equal(700, balanceBefore.toString());
+      assert.equal(700, balanceAfter.toString());
+      assert.equal(balanceBefore.toString(), balanceAfter.toString());
+    });
+  });*/
 });
