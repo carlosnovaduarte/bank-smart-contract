@@ -1,0 +1,29 @@
+{
+  "name": "election-smart-contract",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "lint": "yarn lint:sol && yarn lint:js",
+    "lint:sol": "solium --dir contracts",
+    "lint:js": "eslint .",
+    "watch": "git ls-files | entr -c yarn test",
+    "compile": "truffle compile",
+    "test": "truffle test",
+    "build": "yarn lint && yarn test && yarn compile"
+  },
+  "dependencies": {
+    "eslint": "^5.1.0",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-mocha": "^5.1.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "ganache-cli": "^6.1.4",
+    "lodash": "^4.17.10",
+    "openzeppelin-solidity": "^1.10.0",
+    "solium": "^1.1.7",
+    "truffle": "^4.1.13"
+  }
+}
