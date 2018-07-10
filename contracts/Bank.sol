@@ -25,5 +25,22 @@ contract Bank {
   function depositantCount() public view returns (uint) {
     return depositants.length;
   }
+
+  modifier hasBalance(uint256 amount) {
+    require(amount <= deposits[msg.sender]);
+    _;
+  }
+
+  function withdraw(uint256 amount) public payable {
+    deposits[msg.sender] -= amount;
+    balance -= amount;
+    msg.sender.transfer(amount);
+  }
+
+  function transfer(address to, uint256 amount) public payable {
+    deposits[msg.sender] -= amount;
+    deposits[to] += amount;
+  }
+
 }
 
