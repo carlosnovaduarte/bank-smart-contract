@@ -2,6 +2,10 @@ pragma solidity ^0.4.23;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
+/**
+ * @title A contract for making transactions on a bank
+ * @author Carlos Nova Duarte <carlosnova@frctls.com> 
+ */
 contract Bank {
   using SafeMath for uint256;
 
