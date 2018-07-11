@@ -15,11 +15,9 @@ contract Bank {
     balance = 0;
   }
 
-  event Deposit(address indexed depositant, uint256 indexed amount);
-  event Withdraw(address indexed depositant, uint256 indexed amount);
-  event Transfer(address indexed from, address indexed to, uint256 amount);
-  event Debug(uint256 accountDeposit, uint256 totalBalance);
-  event DebugAddress(address depositant);
+  event Deposit(address depositant, uint256 amount);
+  event Withdraw(address depositant, uint256 amount);
+  event Transfer(address from, address to, uint256 amount);
 
   modifier hasBalance(uint256 amount) {
     require(amount <= deposits[msg.sender]);
@@ -28,13 +26,10 @@ contract Bank {
 
   function deposit() public payable {
     require(msg.value > 0);
-    
     if (deposits[msg.sender] == 0) {
       depositants.push(msg.sender);
     }
-    
     deposits[msg.sender] = deposits[msg.sender].add(msg.value);
-
     balance = balance.add(msg.value);
     emit Deposit(msg.sender, msg.value);
   }
@@ -43,20 +38,10 @@ contract Bank {
     return depositants.length;
   }
 
-  function withdraw(uint256 amount) public {
-    
-    emit DebugAddress(msg.sender);
-    emit Debug(deposits[msg.sender], amount);
+  function withdraw(uint256 amount) public payable {
     deposits[msg.sender] = deposits[msg.sender].sub(amount);
-    emit Debug(deposits[msg.sender], amount);
-
-
-    deposits[msg.sender] -= amount;
-
-    
     balance -= amount;
     msg.sender.transfer(amount);
-
     emit Withdraw(msg.sender, deposits[msg.sender]);
   }
 

@@ -81,32 +81,14 @@ contract("Bank", function([owner, ...accounts]) {
     const depositValue = 200;
     const valueWithdrawn = 50;
 
-    it.only("update total balance ", async function() {
+    it("update total balance ", async function() {
+
       // Test setup
       const receipt = await bank.deposit({ value: depositValue });
-
       const balanceBefore = await bank.balance();
-      console.log("wut");
 
-      // Running the contract...
+      // Run
       const wtv = await bank.withdraw(valueWithdrawn);
-
-
-      console.log("WITHDRAW LOGS");
-      // Logs before deposits[msg.sender] -= amount;
-      console.log("Logs before error");
-      console.log("Account = ", wtv.logs[0].args.depositant, accounts[0]);
-      console.log("Account deposit = ", wtv.logs[1].args.accountDeposit.toString());
-      console.log("Total balance = ", wtv.logs[1].args.totalBalance.toString());
-
-     
-
-
-      // Logs after deposits[msg.sender] -= amount;
-      console.log("\nLogs after error");
-      console.log("Account deposit = ", wtv.logs[2].args.accountDeposit.toString());
-      console.log("Total balance = ", wtv.logs[2].args.totalBalance.toString());
-
       const balanceAfter = await bank.balance();
       const test = await bank.balance();
 
@@ -114,12 +96,20 @@ contract("Bank", function([owner, ...accounts]) {
       assert.equal(valueWithdrawn, balanceBefore - balanceAfter); 
     });
 
-    it("update account balance", async function() {
+
+    //TODO
+    it.only("update account balance", async function() {
+      // Setup
       await bank.deposit({ from: accounts[0], value: depositValue });
-      const balanceBefore = await bank.deposits(accounts[0]);
+
+      // Run
+      const balanceBefore = await bank.deposits(accounts[0], { from: accounts[0] });
       await bank.withdraw(valueWithdrawn, { from: accounts[0], value: depositValue });
-      const balanceAfter = await bank.deposits(accounts[0]);
+      const balanceAfter = await bank.deposits(accounts[0], { from: accounts[0] });
+
+      // Assert
       assert.equal(valueWithdrawn, balanceBefore - balanceAfter);
     });
   });
 });
+
