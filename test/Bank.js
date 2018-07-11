@@ -31,6 +31,9 @@ contract("Bank", function([owner, ...accounts]) {
       it("update total balance", async function() {
         const amounts = [500, 1000];
 
+
+        const initialBalance = web3.eth.getBalance(accounts[0]);
+
         await bank.deposit({ from: accounts[0], value: amounts[0] });
         await bank.deposit({ from: accounts[0], value: amounts[1] });
 
@@ -39,7 +42,13 @@ contract("Bank", function([owner, ...accounts]) {
         const expected = amounts.reduce((a, c) => a+c, 0)
         const given = await bank.balance();
 
+
+        const finalBalance = web3.eth.getBalance(accounts[0]);
+
         assert.equal(expected, given);
+        assert.equal(expected, finalBalance.minus(initialBalance));
+
+
       });
     })
 

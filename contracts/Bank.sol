@@ -1,6 +1,11 @@
 pragma solidity ^0.4.23;
 
+import "openzeppelin-solidity/contracts/math";
+
 contract Bank {
+  
+  using SafeMath for uint256;
+  
   uint256 public balance;
   
   mapping(address => uint256) public deposits;
