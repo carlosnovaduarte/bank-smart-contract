@@ -18,13 +18,15 @@ contract("Bank", function([owner, ...accounts]) {
     describe("from the same account", function() {
       it("update target address balance", async function() {
         const amounts = [400, 300];
-
+        const initialEthBalance = web3.eth.getBalance(accounts[0]);
+        
         await bank.deposit({ from: accounts[0], value: amounts[0] });
         await bank.deposit({ from: accounts[0], value: amounts[1] });
+        const finalEthBalance = web3.eth.getBalance(accounts[0]);
 
         const expected = amounts.reduce((a, c) => a+c, 0)
         const given = await bank.deposits(accounts[0]);
-
+        const ethBalance = finalEthBalance.minus(initialEthBalance);
         assert.equal(expected, given);
       });
 
@@ -79,11 +81,36 @@ contract("Bank", function([owner, ...accounts]) {
     const depositValue = 200;
     const valueWithdrawn = 50;
 
-    it("update total balance ", async function() {
-      await bank.deposit({ from: accounts[0], value: depositValue });
+    it.only("update total balance ", async function() {
+      // Test setup
+      const receipt = await bank.deposit({ value: depositValue });
+
       const balanceBefore = await bank.balance();
-      await bank.withdraw(valueWithdrawn);
+      console.log("wut");
+
+      // Running the contract...
+      const wtv = await bank.withdraw(valueWithdrawn);
+
+
+      console.log("WITHDRAW LOGS");
+      // Logs before deposits[msg.sender] -= amount;
+      console.log("Logs before error");
+      console.log("Account = ", wtv.logs[0].args.depositant, accounts[0]);
+      console.log("Account deposit = ", wtv.logs[1].args.accountDeposit.toString());
+      console.log("Total balance = ", wtv.logs[1].args.totalBalance.toString());
+
+     
+
+
+      // Logs after deposits[msg.sender] -= amount;
+      console.log("\nLogs after error");
+      console.log("Account deposit = ", wtv.logs[2].args.accountDeposit.toString());
+      console.log("Total balance = ", wtv.logs[2].args.totalBalance.toString());
+
       const balanceAfter = await bank.balance();
+      const test = await bank.balance();
+
+      // Assertions
       assert.equal(valueWithdrawn, balanceBefore - balanceAfter); 
     });
 
@@ -95,41 +122,4 @@ contract("Bank", function([owner, ...accounts]) {
       assert.equal(valueWithdrawn, balanceBefore - balanceAfter);
     });
   });
-
-  /*describe("Transfer", function() {
-    beforeEach(async function() {
-      bank = await Bank.new();
-    });
-
-    const depositValueAccount0 = 500, depositValueAccount1 = 200;
-    const transferValue = 100;
-
-    it("money is transfered from one account to another", async function() {
-      await bank.deposit({ from: accounts[0], value: depositValueAccount0});
-      await bank.deposit({ from: accounts[1], value: depositValueAccount1 });
-
-      const balanceAccount0 = await bank.deposits(accounts[0]);
-      const balanceAccount1 = await bank.deposits(accounts[1]);
-
-      await bank.transfer(accounts[1], transferValue, { from: accounts[0] });
-
-      assert.equal(400, balanceAccount0.minus(transferValue));
-      assert.equal(300, balanceAccount1.plus(transferValue));
-    });
-
-    it("bank balance stays the same when transfer occurs", async function() {
-      await bank.deposit({ from: accounts[0], value: depositValueAccount0 });
-      await bank.deposit({ from: accounts[1], value: depositValueAccount1 });
-
-      const balanceBefore = await bank.balance();
-
-      await bank.transfer(accounts[1], transferValue, { from: accounts[0] });
-
-      const balanceAfter = await bank.balance();
-
-      assert.equal(700, balanceBefore.toString());
-      assert.equal(700, balanceAfter.toString());
-      assert.equal(balanceBefore.toString(), balanceAfter.toString());
-    });
-  });*/
 });
