@@ -84,6 +84,7 @@ contract Bank {
   }
 
   function offerTransfer(address to) public payable 
+  hasBalance(msg.value) 
   valueIsPositive {
     deposits[msg.sender] = deposits[msg.sender].sub(msg.value);
     balance = balance.sub(msg.value);
