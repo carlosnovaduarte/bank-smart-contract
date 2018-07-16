@@ -16,7 +16,7 @@ contract("Bank", function([owner, ...accounts]) {
 
   describe("Deposits", function() {
     describe("from the same account", function() {
-      it("update target address balance", async function() {
+      it("updates target address balance", async function() {
         const amounts = [400, 300];
         const initialEthBalance = web3.eth.getBalance(accounts[0]);
         
@@ -30,7 +30,7 @@ contract("Bank", function([owner, ...accounts]) {
         assert.equal(expected, given);
       });
 
-      it("update total balance", async function() {
+      it("updates total balance", async function() {
         const amounts = [500, 1000];
 
         await bank.deposit({ from: accounts[0], value: amounts[0] });
@@ -46,7 +46,7 @@ contract("Bank", function([owner, ...accounts]) {
     })
 
     describe("from different accounts", function() {
-      it("update target address balance", async function() {
+      it("updates target address balance", async function() {
         const amounts = [400, 300];
 
         await bank.deposit({ from: accounts[0], value: amounts[0] });
@@ -59,7 +59,7 @@ contract("Bank", function([owner, ...accounts]) {
         assert.equal(amounts[1], acc1balance);
       });
 
-      it("update total balance", async function() { 
+      it("updates total balance", async function() { 
         const amounts = [200, 300];
 
         await bank.deposit({ from: accounts[0], value: amounts[0] });
@@ -81,7 +81,7 @@ contract("Bank", function([owner, ...accounts]) {
     const depositValue = 200;
     const valueWithdrawn = 50;
 
-    it("update total balance ", async function() {
+    it("updates total balance ", async function() {
 
       // Test setup
       const receipt = await bank.deposit({ value: depositValue });
@@ -97,18 +97,91 @@ contract("Bank", function([owner, ...accounts]) {
     });
 
 
-    //TODO
-    it.only("update account balance", async function() {
+    it("updates account balance", async function() {
       // Setup
       await bank.deposit({ from: accounts[0], value: depositValue });
 
       // Run
-      const balanceBefore = await bank.deposits(accounts[0], { from: accounts[0] });
+      const balanceBefore = await bank.deposits(accounts[0]);
       await bank.withdraw(valueWithdrawn, { from: accounts[0], value: depositValue });
-      const balanceAfter = await bank.deposits(accounts[0], { from: accounts[0] });
+      const balanceAfter = await bank.deposits(accounts[0]);
 
       // Assert
       assert.equal(valueWithdrawn, balanceBefore - balanceAfter);
+    });
+  });
+
+  describe("Transfer", async function() {
+      beforeEach(async function() {
+        bank = await Bank.new();
+      });
+
+      const depositValue = 200;
+      const transferValue = 50;
+      const expectedValue = depositValue - transferValue;
+
+    describe("offer", async function() {
+      it("updates offerer's deposit correctly", async function() {
+        await bank.deposit({ from: accounts[0], value: depositValue });
+
+        const balanceBefore = await bank.deposits(accounts[0]); 
+        await bank.offerTransfer(accounts[1], { from: accounts[0], value: transferValue }); 
+        const balanceAfter = await bank.deposits(accounts[0]);
+        
+        assert.equal(transferValue, balanceBefore - balanceAfter);
+      });
+
+      it("updates bank's balance correctly", async function() {
+        await bank.deposit({ from: accounts[0], value: depositValue });
+
+        const balanceBefore = await bank.balance(); 
+        await bank.offerTransfer(accounts[1], { from: accounts[0], value: transferValue }); 
+        const balanceAfter = await bank.balance();
+        
+        assert.equal(transferValue, balanceBefore - balanceAfter);
+      });
+
+      it("adds a pending withdrawal", async function() {
+        await bank.deposit({ from: accounts[0], value: depositValue });
+        
+        await bank.offerTransfer(accounts[1], { from: accounts[0], value: transferValue }); 
+        const pendingWithdrawalValue = await bank.pendingWithdrawals(accounts[1]);
+
+        assert.equal(transferValue, pendingWithdrawalValue);
+      });
+    });
+
+    describe("acceptance", async function() {
+      it("resets pending withdrawal's value", async function() {
+        await bank.deposit({ from: accounts[0], value: depositValue });
+        await bank.offerTransfer(accounts[1], { from: accounts[0], value: transferValue });
+        await bank.acceptTransfer({ from: accounts[1], value: transferValue });
+
+        const pendingWithdrawalValue = await bank.pendingWithdrawals(accounts[1]);
+        assert.equal(0, pendingWithdrawalValue);
+      });
+    });
+
+    // TODO: remove modifiers and re-test
+    it.only("gives money to the recepient", async function() {
+      debugger
+      await bank.deposit({ from: accounts[0], value: depositValue });
+      await bank.offerTransfer(accounts[1], { from: accounts[0], value: transferValue });
+      
+
+      const recepientBalanceBefore = await web3.eth.getBalance(accounts[1]);
+
+      const acceptTx = await bank.acceptTransfer({ from: accounts[1], value: transferValue });
+
+      const recepientBalanceAfter = await web3.eth.getBalance(accounts[1]);
+
+      const fullAcceptTx = await web3.eth.getTransaction(acceptTx.tx);
+      const ethUsedAsGas = fullAcceptTx.gasPrice.mul(acceptTx.receipt.gasUsed);
+
+      const expected = recepientBalanceBefore.add(transferValue).sub(ethUsedAsGas);
+      
+      assert.equal(recepientBalanceAfter.toString(), expected.toString());
+      assert.notEqual(recepientBalanceAfter.add(ethUsedAsGas).toString(), recepientBalanceBefore.toString());
     });
   });
 });
