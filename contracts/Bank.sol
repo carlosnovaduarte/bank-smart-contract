@@ -2,30 +2,23 @@ pragma solidity ^0.4.23;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-/**
- * @title A contract for making transactions on a bank
- * @author Carlos Nova Duarte <carlosnova@frctls.com> 
- */
 contract Bank {
   using SafeMath for uint256;
 
-  // Total amount of wei in the bank
   uint256 public balance;
   
-  // Amount that each depositant has stored 
   mapping(address => uint256) public deposits;
 
   mapping(address => uint256) public pendingWithdrawals;
 
-  // Every depositant
   address[] public depositants;
 
   constructor() public {
     balance = 0;
   }
 
-  event Deposit(address depositant, uint256 amount);
-  event Withdraw(address depositant, uint256 amount);
+  event Deposited(address depositant, uint256 amount);
+  event Withdrawn(address depositant, uint256 amount);
   event TransferOffered(address from, address to, uint256 amount);
   event TransferAccepted(address receiver, uint256 amount);
 
@@ -71,7 +64,7 @@ contract Bank {
     deposits[msg.sender] = deposits[msg.sender].add(msg.value);
     balance = balance.add(msg.value);
 
-    emit Deposit(msg.sender, msg.value);
+    emit Deposited(msg.sender, msg.value);
   }
 
   function withdraw(uint256 amount) public payable 
@@ -80,7 +73,7 @@ contract Bank {
     balance = balance.sub(amount);
     msg.sender.transfer(amount);
     
-    emit Withdraw(msg.sender, deposits[msg.sender]);
+    emit Withdrawn(msg.sender, deposits[msg.sender]);
   }
 
   function offerTransfer(address to) public payable 
@@ -101,5 +94,6 @@ contract Bank {
 
     emit TransferAccepted(msg.sender, amount);
   }
+
 }
 

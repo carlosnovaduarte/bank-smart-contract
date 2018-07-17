@@ -160,8 +160,10 @@ contract("Bank", function([owner, ...accounts]) {
         const pendingWithdrawalValue = await bank.pendingWithdrawals(accounts[1]);
         assert.equal(0, pendingWithdrawalValue);
       });
-    });
-    /**
+
+
+
+/**
     // TODO: remove modifiers and re-test
     it("gives money to the recepient", async function() {
       //debugger
@@ -182,8 +184,13 @@ contract("Bank", function([owner, ...accounts]) {
       
       assert.equal(recepientBalanceAfter.toString(), expected.toString());
       //assert.notEqual(recepientBalanceAfter.add(ethUsedAsGas).toString(), recepientBalanceBefore.toString());
+
     });
-    */
+*/
+
+    
+      
+    });
   });
 });
 

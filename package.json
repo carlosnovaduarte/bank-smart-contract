@@ -23,6 +23,7 @@
     "ganache-cli": "^6.1.4",
     "lodash": "^4.17.10",
     "openzeppelin-solidity": "^1.10.0",
+    "solc": "^0.4.24",
     "solium": "^1.1.7",
     "truffle": "^4.1.13"
   }
