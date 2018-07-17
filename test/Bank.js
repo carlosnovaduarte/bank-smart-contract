@@ -1,6 +1,6 @@
 const Bank = artifacts.require("Bank");
 
-contract("Bank", function([owner, ...accounts]) {
+contract("Bank", function(accounts) {
   let bank;
 
   beforeEach(async function() {
@@ -116,8 +116,8 @@ contract("Bank", function([owner, ...accounts]) {
         bank = await Bank.new();
       });
 
-      const depositValue = 200;
-      const transferValue = 50;
+      const depositValue = 0.05e18;
+      const transferValue = 0.01e18;
       const expectedValue = depositValue - transferValue;
 
     describe("offer", async function() {
@@ -163,17 +163,18 @@ contract("Bank", function([owner, ...accounts]) {
 
 
 
-/**
+
     // TODO: remove modifiers and re-test
-    it("gives money to the recepient", async function() {
-      //debugger
+    it.only("gives money to the recepient", async function() {
+      debugger
       await bank.deposit({ from: accounts[0], value: depositValue });
-      await bank.offerTransfer(accounts[1], { from: accounts[0], value: transferValue });
-      
+      const balance = await bank.deposits(accounts[0]);
+
+      const teste = await bank.offerTransfer(accounts[1], transferValue, { from: accounts[0] });
 
       const recepientBalanceBefore = await web3.eth.getBalance(accounts[1]);
 
-      const acceptTx = await bank.acceptTransfer({ from: accounts[1], value: transferValue });
+      const acceptTx = await bank.acceptTransfer({ from: accounts[1] });
 
       const recepientBalanceAfter = await web3.eth.getBalance(accounts[1]);
 
@@ -182,13 +183,11 @@ contract("Bank", function([owner, ...accounts]) {
 
       const expected = recepientBalanceBefore.add(transferValue).sub(ethUsedAsGas);
       
-      assert.equal(recepientBalanceAfter.toString(), expected.toString());
-      //assert.notEqual(recepientBalanceAfter.add(ethUsedAsGas).toString(), recepientBalanceBefore.toString());
+      //assert.equal(recepientBalanceAfter.toString(), expected.toString());
+      assert.notEqual(recepientBalanceAfter.add(ethUsedAsGas).toString(), recepientBalanceBefore.toString());
 
     });
-*/
 
-    
       
     });
   });

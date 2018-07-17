@@ -1,7 +1,7 @@
 pragma solidity ^0.4.23;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-
+// remove balance, because I can use the contract's balance
 contract Bank {
   using SafeMath for uint256;
 
@@ -21,10 +21,19 @@ contract Bank {
   event Withdrawn(address depositant, uint256 amount);
   event TransferOffered(address from, address to, uint256 amount);
   event TransferAccepted(address receiver, uint256 amount);
+  event Debug(uint256 msgvalue, uint256 deposit);
 
   modifier hasBalance(uint256 amount) {
     require(
       amount <= deposits[msg.sender],
+      "You have insufficient funds in your account"
+    );
+    _;
+  }
+
+  modifier hasOwnBalance() {
+    require(
+      msg.value <= deposits[msg.sender],
       "You have insufficient funds in your account"
     );
     _;
@@ -67,7 +76,7 @@ contract Bank {
     emit Deposited(msg.sender, msg.value);
   }
 
-  function withdraw(uint256 amount) public payable 
+  function withdraw(uint256 amount) public 
   hasBalance(amount) {
     deposits[msg.sender] = deposits[msg.sender].sub(amount);
     balance = balance.sub(amount);
@@ -76,18 +85,18 @@ contract Bank {
     emit Withdrawn(msg.sender, deposits[msg.sender]);
   }
 
-  function offerTransfer(address to) public payable 
-  hasBalance(msg.value) 
-  valueIsPositive {
-    deposits[msg.sender] = deposits[msg.sender].sub(msg.value);
-    balance = balance.sub(msg.value);
-    pendingWithdrawals[to] = pendingWithdrawals[to].add(msg.value);
+  function offerTransfer(address to, uint256 amount) public
+  hasBalance(amount) {  
+    emit Debug(amount, deposits[msg.sender]);
+    deposits[msg.sender] = deposits[msg.sender].sub(amount);
+    balance = balance.sub(amount);
+    pendingWithdrawals[to] = pendingWithdrawals[to].add(amount);
 
-    emit TransferOffered(msg.sender, to, msg.value);
+    emit TransferOffered(msg.sender, to, amount);
   }
 
-  function acceptTransfer() public payable 
-  hasWithdrawals() {
+  function acceptTransfer() public
+  hasWithdrawals {
     uint amount = pendingWithdrawals[msg.sender];
     pendingWithdrawals[msg.sender] = 0;
     msg.sender.transfer(amount);
