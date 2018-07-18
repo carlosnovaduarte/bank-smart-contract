@@ -98,15 +98,12 @@ contract("Bank", function(accounts) {
 
 
     it("updates account balance", async function() {
-      // Setup
       await bank.deposit({ from: accounts[0], value: depositValue });
 
-      // Run
       const balanceBefore = await bank.deposits(accounts[0]);
-      await bank.withdraw(valueWithdrawn, { from: accounts[0], value: depositValue });
+      await bank.withdraw(valueWithdrawn, { from: accounts[0] });
       const balanceAfter = await bank.deposits(accounts[0]);
 
-      // Assert
       assert.equal(valueWithdrawn, balanceBefore - balanceAfter);
     });
   });
@@ -125,7 +122,7 @@ contract("Bank", function(accounts) {
         await bank.deposit({ from: accounts[0], value: depositValue });
 
         const balanceBefore = await bank.deposits(accounts[0]); 
-        await bank.offerTransfer(accounts[1], { from: accounts[0], value: transferValue }); 
+        await bank.offerTransfer(accounts[1], transferValue, { from: accounts[0] }); 
         const balanceAfter = await bank.deposits(accounts[0]);
         
         assert.equal(transferValue, balanceBefore - balanceAfter);
@@ -135,7 +132,7 @@ contract("Bank", function(accounts) {
         await bank.deposit({ from: accounts[0], value: depositValue });
 
         const balanceBefore = await bank.balance(); 
-        await bank.offerTransfer(accounts[1], { from: accounts[0], value: transferValue }); 
+        await bank.offerTransfer(accounts[1], transferValue, { from: accounts[0] }); 
         const balanceAfter = await bank.balance();
         
         assert.equal(transferValue, balanceBefore - balanceAfter);
@@ -144,7 +141,7 @@ contract("Bank", function(accounts) {
       it("adds a pending withdrawal", async function() {
         await bank.deposit({ from: accounts[0], value: depositValue });
         
-        await bank.offerTransfer(accounts[1], { from: accounts[0], value: transferValue }); 
+        await bank.offerTransfer(accounts[1], transferValue, { from: accounts[0] }); 
         const pendingWithdrawalValue = await bank.pendingWithdrawals(accounts[1]);
 
         assert.equal(transferValue, pendingWithdrawalValue);
@@ -154,14 +151,14 @@ contract("Bank", function(accounts) {
     describe("acceptance", async function() {
       it("resets pending withdrawal's value", async function() {
         await bank.deposit({ from: accounts[0], value: depositValue });
-        await bank.offerTransfer(accounts[1], { from: accounts[0], value: transferValue });
-        await bank.acceptTransfer({ from: accounts[1], value: transferValue });
+        await bank.offerTransfer(accounts[1], transferValue, { from: accounts[0] });
+        await bank.acceptTransfer({ from: accounts[1] });
 
         const pendingWithdrawalValue = await bank.pendingWithdrawals(accounts[1]);
         assert.equal(0, pendingWithdrawalValue);
       });
 
-      it.only("gives money to the recepient", async function() {
+      it("gives money to the recepient", async function() {
         debugger
         await bank.deposit({ from: accounts[0], value: depositValue });
         const balance = await bank.deposits(accounts[0]);
