@@ -21,7 +21,6 @@ contract Bank {
   event Withdrawn(address depositant, uint256 amount);
   event TransferOffered(address from, address to, uint256 amount);
   event TransferAccepted(address receiver, uint256 amount);
-  event Debug(uint256 msgvalue, uint256 deposit);
 
   modifier hasBalance(uint256 amount) {
     require(
@@ -87,7 +86,6 @@ contract Bank {
 
   function offerTransfer(address to, uint256 amount) public
   hasBalance(amount) {  
-    emit Debug(amount, deposits[msg.sender]);
     deposits[msg.sender] = deposits[msg.sender].sub(amount);
     balance = balance.sub(amount);
     pendingWithdrawals[to] = pendingWithdrawals[to].add(amount);
