@@ -161,34 +161,28 @@ contract("Bank", function(accounts) {
         assert.equal(0, pendingWithdrawalValue);
       });
 
+      it.only("gives money to the recepient", async function() {
+        debugger
+        await bank.deposit({ from: accounts[0], value: depositValue });
+        const balance = await bank.deposits(accounts[0]);
 
+        const teste = await bank.offerTransfer(accounts[1], transferValue, { from: accounts[0] });
 
+        const recepientBalanceBefore = await web3.eth.getBalance(accounts[1]);
 
-    // TODO: remove modifiers and re-test
-    it.only("gives money to the recepient", async function() {
-      debugger
-      await bank.deposit({ from: accounts[0], value: depositValue });
-      const balance = await bank.deposits(accounts[0]);
+        const acceptTx = await bank.acceptTransfer({ from: accounts[1] });
 
-      const teste = await bank.offerTransfer(accounts[1], transferValue, { from: accounts[0] });
+        const recepientBalanceAfter = await web3.eth.getBalance(accounts[1]);
 
-      const recepientBalanceBefore = await web3.eth.getBalance(accounts[1]);
+        const fullAcceptTx = await web3.eth.getTransaction(acceptTx.tx);
+        const ethUsedAsGas = fullAcceptTx.gasPrice.mul(acceptTx.receipt.gasUsed);
 
-      const acceptTx = await bank.acceptTransfer({ from: accounts[1] });
+        const expected = recepientBalanceBefore.add(transferValue).sub(ethUsedAsGas);
+        
+        assert.equal(recepientBalanceAfter.toString(), expected.toString());
+        assert.notEqual(recepientBalanceAfter.add(ethUsedAsGas).toString(), recepientBalanceBefore.toString());
 
-      const recepientBalanceAfter = await web3.eth.getBalance(accounts[1]);
-
-      const fullAcceptTx = await web3.eth.getTransaction(acceptTx.tx);
-      const ethUsedAsGas = fullAcceptTx.gasPrice.mul(acceptTx.receipt.gasUsed);
-
-      const expected = recepientBalanceBefore.add(transferValue).sub(ethUsedAsGas);
-      
-      //assert.equal(recepientBalanceAfter.toString(), expected.toString());
-      assert.notEqual(recepientBalanceAfter.add(ethUsedAsGas).toString(), recepientBalanceBefore.toString());
-
-    });
-
-      
+      });
     });
   });
 });
