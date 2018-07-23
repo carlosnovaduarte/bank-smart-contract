@@ -23,6 +23,8 @@ module.exports = {
       host: "127.0.0.1",
       port: 1337,
       network_id: 4,
+      gas: 6500000,
+      gasPrice: 100000000000,
     }
   },
 };
